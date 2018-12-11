@@ -6,7 +6,6 @@ let msgDiv;
 let guestid;
 
 function generateUserJoinedTemplate(username) {
-    username = username === 'You' ? username : `Guest #${username}`;
     return `
         <span>${username} just joined!</span>
     `;
@@ -52,7 +51,7 @@ connection.onmessage = function (message) {
     if (response.type) {
         let container = document.createElement('div');
         container.classList.add("flex--row-acall", "new-join");
-        container.innerHTML = generateUserJoinedTemplate(response.guestid === guestid ? 'You' : response.guestid);
+        container.innerHTML = generateUserJoinedTemplate(response.guestid);
         msgDiv.append(container);
     }
     else {

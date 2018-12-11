@@ -1,1 +1,1 @@
-# Anonymous chat application for Chris Mom Child Event
+# Anonymous LAN chat application for Chris Mom Child Event

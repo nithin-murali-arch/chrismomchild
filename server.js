@@ -9,12 +9,7 @@ let lastRegisteredGuest = -1;
 
 let connectedGuests = {};
 
-app.use(express.static('public'));
-
-app.use('/api/v1/registerMachine', async function (req, res) {
-    let ip = req.ip;
-    
-});
+app.use('/', express.static(__dirname + '/public'));
 
 /**
  * 
@@ -30,6 +25,11 @@ server.listen(webSocketsServerPort, function () {
 
 let wsServer = new webSocketServer({
     httpServer: server
+});
+
+app.use('/api/v1/forceReload', async function (req, res) {
+    broadcastMessage({action: 'reload'});
+    res.send('done');
 });
 
 /**
@@ -57,6 +57,10 @@ async function registerUser(ip){
     return guestid;
 }
 
+function broadcastMessage(obj){
+    wsServer.broadcastUTF(JSON.stringify(obj));
+}
+
 wsServer.on('request', async function (request) {
     let connection = request.accept(null, request.origin);
     //Start get userid
@@ -64,7 +68,7 @@ wsServer.on('request', async function (request) {
     let data = await getUserInfo(ip);
     let guestid;
     if (!data) {
-        guestid = registerUser(ip);
+        guestid = await registerUser(ip);
     }
     else {
         guestid = data.guestid;
@@ -76,16 +80,22 @@ wsServer.on('request', async function (request) {
     var end = new Date();
     end.setHours(23, 59, 59, 999);
     //guest connected broadcast
-    wsServer.broadcastUTF(JSON.stringify({'type': 'connected', guestid: connectedGuests[request.remoteAddress]}));
     //send initial message
     let messages = await db.get('messages', {timestamp: {$gte: start, $lt: end}}, {timestamp: +1});
     connection.sendUTF(JSON.stringify({messages, guestid}));
-    connection.on('message', function (message) {
-        let obj = {guestid, message, timestamp: new Date()};
-        db.add('messages', obj);
-        wsServer.broadcastUTF(JSON.stringify({messages: [obj]}));
+    broadcastMessage({'type': 'connected', guestid: connectedGuests[request.remoteAddress]});
+    connection.on('message', function (req) {
+        let reqObj = JSON.parse(req.utf8Data);
+        if(reqObj.message){
+            let obj = {guestid, message: reqObj.message, timestamp: new Date()};
+            db.add('messages', obj);
+            broadcastMessage({messages: [obj]});
+        }
+        else{
+            broadcastMessage({action: 'typing', guestid});
+        }
     });
     connection.on('close', function (connection) {
-        //close connection stub
+        broadcastMessage({'type': 'disconnected', guestid: connectedGuests[request.remoteAddress]});
     });
 });

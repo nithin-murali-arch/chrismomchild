@@ -12,6 +12,13 @@
     overflow: auto;
 }
 
+.typing-lbl{
+    font-size: 0.7rem;
+    color: #999;
+    display: block;
+    text-align: center;
+}
+
 .circle{
     border-radius: 50%;
     background: #ccc;

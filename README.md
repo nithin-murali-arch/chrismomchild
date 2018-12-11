@@ -1,1 +1,1 @@
-# Anonymous chat application for Chris Mom Child Events
+# Anonymous chat application for Chris Mom Child Event

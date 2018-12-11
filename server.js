@@ -9,7 +9,7 @@ let lastRegisteredGuest = -1;
 
 let connectedGuests = {};
 
-app.use('/', express.static(__dirname + '/public'));
+app.use('/chrismom', express.static(__dirname + '/public'));
 
 /**
  * 

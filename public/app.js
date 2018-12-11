@@ -1,6 +1,6 @@
 window.WebSocket = window.WebSocket || window.MozWebSocket;
 
-let connection = new WebSocket('ws://127.0.0.1:1337');
+let connection = new WebSocket('ws://nithin-6321:6935');
 let anonymousMode = true;
 let msgDiv = document.querySelector('.msg-div .content');
 let guestid;

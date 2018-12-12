@@ -1,10 +1,11 @@
 window.WebSocket = window.WebSocket || window.MozWebSocket;
 
-let connection = new WebSocket('ws://nithin-6321:6935');
+let connection = new WebSocket('wss://' + window.location.host);
 let anonymousMode = true;
 let msgDiv = document.querySelector('.msg-div .content');
 let guestid;
 let notification;
+
 
 function debounce(func, wait, immediate) {
 	var timeout;
@@ -37,32 +38,32 @@ function generateMessageTemplate(guest, message, timestamp) {
 }
 
 function translateEmojis(text){
-    text = text.replace(/:grinning:/g, '&#x1F600');
-    text = text.replace(/:D/g, '&#x1F603');
-    text = text.replace(/:happy:/g, '&#x1F604');
-    text = text.replace(/:rofl:/g, '&#x1F923');
-    text = text.replace(/:tearsojoy:/g, '&#x1F602');
-    text = text.replace(/:\)/g, '&#x1F642');
-    text = text.replace(/;\)/g, '&#x1F609');
-    text = text.replace(/:peace:/g, '&#x1F607');
-    text = text.replace(/:love:/g, '&#x1F60D');
-    text = text.replace(/:kiss:/g, '&#x1F618');
-    text = text.replace(/:P/g, '&#x1F61C');
-    text = text.replace(/:crazy:/g, '&#x1F92A');
-    text = text.replace(/:rich:/g, '&#x1F911');
-    text = text.replace(/:\|/g, '&#x1F610');
-    text = text.replace(/:sick:/g, '&#x1F92E');
-    text = text.replace(/:cool:/g, '&#x1F60E');
-    text = text.replace(/:analyse:/g, '&#x1F9D0');
-    text = text.replace(/:O/g, '&#x1F628');
-    text = text.replace(/:\(/g, '&#x1F622');
-    text = text.replace(/:'\(/g, '&#x1F62D');
-    text = text.replace(/:angry:/g, '&#x1F621');
-    text = text.replace(/:curse:/g, '&#x1F92C');
-    text = text.replace(/:dead:/g, '&#x1F480');
-    text = text.replace(/:danger:/g, '&#x2620');
-    text = text.replace(/:poop:/g, '&#x1F4A9');
-    text = text.replace(/:girija:/g, '&#x1F921');
+    text = text.replace(/:grinning:/ig, '<span class="emoji">&#x1F600</span>');
+    text = text.replace(/:D/ig, '<span class="emoji">&#x1F603</span>');
+    text = text.replace(/:happy:/ig, '<span class="emoji">&#x1F604</span>');
+    text = text.replace(/:rofl:/ig, '<span class="emoji">&#x1F923</span>');
+    text = text.replace(/:tearsojoy:/ig, '<span class="emoji">&#x1F602</span>');
+    text = text.replace(/:\)/ig, '<span class="emoji">&#x1F642</span>');
+    text = text.replace(/;\)/ig, '<span class="emoji">&#x1F609</span>');
+    text = text.replace(/:peace:/ig, '<span class="emoji">&#x1F607</span>');
+    text = text.replace(/:love:/ig, '<span class="emoji">&#x1F60D</span>');
+    text = text.replace(/:kiss:/ig, '<span class="emoji">&#x1F618</span>');
+    text = text.replace(/:P/ig, '<span class="emoji">&#x1F61C</span>');
+    text = text.replace(/:crazy:/ig, '<span class="emoji">&#x1F92A</span>');
+    text = text.replace(/:rich:/ig, '<span class="emoji">&#x1F911</span>');
+    text = text.replace(/:\|/ig, '<span class="emoji">&#x1F610</span>');
+    text = text.replace(/:sick:/ig, '<span class="emoji">&#x1F92E</span>');
+    text = text.replace(/:cool:/ig, '<span class="emoji">&#x1F60E</span>');
+    text = text.replace(/:analyse:/ig, '<span class="emoji">&#x1F9D0</span>');
+    text = text.replace(/:O/ig, '<span class="emoji">&#x1F628</span>');
+    text = text.replace(/:\(/ig, '<span class="emoji">&#x1F622</span>');
+    text = text.replace(/:'\(/ig, '<span class="emoji">&#x1F62D</span>');
+    text = text.replace(/:angry:/ig, '<span class="emoji">&#x1F621</span>');
+    text = text.replace(/:curse:/ig, '<span class="emoji">&#x1F92C</span>');
+    text = text.replace(/:dead:/ig, '<span class="emoji">&#x1F480</span>');
+    text = text.replace(/:danger:/ig, '<span class="emoji">&#x2620</span>');
+    text = text.replace(/:poop:/ig, '<span class="emoji">&#x1F4A9</span>');
+    text = text.replace(/:girija:/ig, '<span class="emoji">&#x1F47B</span>');
     return text;
 }
 
@@ -94,7 +95,7 @@ function clearTyping(){
 }
 
 let debouncedTyping = debounce(sendTyping, 300);
-let debouncedClear = debounce(clearTyping, 300);
+let debouncedClear = debounce(clearTyping, 500);
     
 
 connection.onopen = function () {
@@ -129,7 +130,7 @@ connection.onmessage = function (message) {
         let msgLen = response.messages.length;
         response.messages.forEach(function (obj) {
             if(msgLen === 1 && window.hidden){
-                if (Notification.permission === "granted") {
+                if (Notification.permission === 'granted') {
                     generateNotification(obj.message);
                 }
                 else{
@@ -150,6 +151,9 @@ connection.onmessage = function (message) {
 
 
 function send(event) {
+	if(Notification.permission !== 'granted'){
+		Notification.requestPermission();
+	}
     if (!event.shiftKey && event.key === 'Enter') {
         let text = event.target.value;
         connection.send(JSON.stringify({message: text}));

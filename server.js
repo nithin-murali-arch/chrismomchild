@@ -1,8 +1,15 @@
-const webSocketsServerPort = 1337;
-const webSocketServer = require('websocket').server;
+const webSocketsServerPort = 443;
+const ws = require('ws');
 const http = require('http');
+const https = require('https');
 const db = require('./dbutils');
-const express = require('express')
+const express = require('express');
+const crypto = require('crypto');
+const fs = require("fs");
+const options = {
+	key: fs.readFileSync('privatekey.pem'),
+	cert: fs.readFileSync('certificate.pem')
+};
 const app = express();
 
 let lastRegisteredGuest = -1;
@@ -17,15 +24,15 @@ app.use('/chrismom', express.static(__dirname + '/public'));
  * 
  */
 
-let server = http.createServer(app);
+// let httpsserver = tls.createServer(app);
+
+let server = https.createServer(options, app);
 server.listen(webSocketsServerPort, function () {
     console.log("Server is listening on port:"
         + webSocketsServerPort);
 });
 
-let wsServer = new webSocketServer({
-    httpServer: server
-});
+let wsServer = new ws.Server({server, path: '/'});
 
 app.use('/api/v1/forceReload', async function (req, res) {
     broadcastMessage({action: 'reload'});
@@ -58,11 +65,15 @@ async function registerUser(ip){
 }
 
 function broadcastMessage(obj){
-    wsServer.broadcastUTF(JSON.stringify(obj));
+	wsServer.clients.forEach(function each(client) {
+		try{
+			client.send(JSON.stringify(obj));
+		}
+		catch(err){}
+	});
 }
 
-wsServer.on('request', async function (request) {
-    let connection = request.accept(null, request.origin);
+wsServer.on('connection', async function (request) {
     //Start get userid
     let ip = request.remoteAddress;
     let data = await getUserInfo(ip);
@@ -75,17 +86,18 @@ wsServer.on('request', async function (request) {
     }
     connectedGuests[ip] = await guestid;
     //Start sort messages
-    let start = new Date();
+	let start = new Date();
+	start.setDate(start.getDate() - 1);
     start.setHours(0, 0, 0, 0);
-    var end = new Date();
+	var end = new Date();
     end.setHours(23, 59, 59, 999);
     //guest connected broadcast
     //send initial message
     let messages = await db.get('messages', {timestamp: {$gte: start, $lt: end}}, {timestamp: +1});
-    connection.sendUTF(JSON.stringify({messages, guestid}));
+    request.send(JSON.stringify({messages, guestid}));
     broadcastMessage({'type': 'connected', guestid: connectedGuests[request.remoteAddress]});
-    connection.on('message', function (req) {
-        let reqObj = JSON.parse(req.utf8Data);
+    request.on('message', function (req) {
+		let reqObj = JSON.parse(req);
         if(reqObj.message){
             let obj = {guestid, message: reqObj.message, timestamp: new Date()};
             db.add('messages', obj);
@@ -95,7 +107,7 @@ wsServer.on('request', async function (request) {
             broadcastMessage({action: 'typing', guestid});
         }
     });
-    connection.on('close', function (connection) {
+    request.on('close', function (connection) {
         broadcastMessage({'type': 'disconnected', guestid: connectedGuests[request.remoteAddress]});
     });
 });

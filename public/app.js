@@ -77,9 +77,16 @@ function safeHTML(text) {
     return translateEmojis(text);
 }
 
+function formatTime(number){
+	if(number < 10){
+		return `0${number}`;
+	}
+	return number;
+}
+
 function formatDate(dateString) {
     let date = new Date(dateString);
-    return `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()} - ${date.getHours()}:${date.getMinutes()}`
+    return `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()} - ${formatTime(date.getHours())}:${formatTime(date.getMinutes())}`
 }
 
 function generateNotification(text){

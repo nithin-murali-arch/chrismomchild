@@ -73,9 +73,13 @@ function broadcastMessage(obj){
 	});
 }
 
+function hash(value){
+	return crypto.createHash('md5').update(value).digest('hex');
+}
+
 wsServer.on('connection', async function (request) {
-    //Start get userid
-    let ip = request.remoteAddress;
+	//Start get userid
+    let ip = hash(request._socket.remoteAddress);
     let data = await getUserInfo(ip);
     let guestid;
     if (!data) {
@@ -95,7 +99,7 @@ wsServer.on('connection', async function (request) {
     //send initial message
     let messages = await db.get('messages', {timestamp: {$gte: start, $lt: end}}, {timestamp: +1});
     request.send(JSON.stringify({messages, guestid}));
-    broadcastMessage({'type': 'connected', guestid: connectedGuests[request.remoteAddress]});
+    broadcastMessage({'type': 'connected', guestid: connectedGuests[ip]});
     request.on('message', function (req) {
 		let reqObj = JSON.parse(req);
         if(reqObj.message){
@@ -108,6 +112,6 @@ wsServer.on('connection', async function (request) {
         }
     });
     request.on('close', function (connection) {
-        broadcastMessage({'type': 'disconnected', guestid: connectedGuests[request.remoteAddress]});
+        broadcastMessage({'type': 'disconnected', guestid: connectedGuests[ip]});
     });
 });

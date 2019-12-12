@@ -138,7 +138,7 @@ function createWebSocket() {
 
 	connection.onmessage = function (message) {
 		let response = JSON.parse(message.data);
-		if (response.guestid) {
+		if (response.messages && response.guestid) {
 			guestid = response.guestid;
 		}
 		if (response.type) {
@@ -186,4 +186,16 @@ function send(event) {
 		event.preventDefault();
 	}
 	debouncedTyping();
+}
+
+function http(method, url, body, headers){
+	return new Promise((resolve, reject) => {
+		let xhr = new XMLHttpRequest();
+		xhr.open(method, url, true);
+		xhr.send(body);
+
+		xhr.onload = function(response){
+			resolve(response);
+		}
+	});
 }

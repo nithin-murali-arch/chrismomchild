@@ -96,9 +96,13 @@ function formatDate(dateString) {
 }
 
 function generateNotification(text) {
-	new Notification("You have a new message!", {
+	let notification = new Notification("You have a new message!", {
 		body: text
 	});
+	notification.onclick = function () {
+		window.focus();
+		this.close();
+	};
 }
 
 function sendTyping() {
@@ -114,6 +118,7 @@ function clearTyping() {
 let debouncedTyping = debounce(sendTyping, 300);
 let debouncedClear = debounce(clearTyping, 4000);
 let connection;
+
 function createWebSocket() {
 	connection = new WebSocket(`${wsProtocol}://${window.location.host}`);
 
@@ -121,7 +126,7 @@ function createWebSocket() {
 		//stub
 	};
 
-	connection.onclose = function(){
+	connection.onclose = function () {
 		// connection closed, discard old websocket and create a new one in 5s
 		connection = null
 		setTimeout(createWebSocket, 5000)
@@ -150,7 +155,7 @@ function createWebSocket() {
 			}
 		} else {
 			response.messages.forEach(function (obj) {
-				if(response.messages.length === 1){
+				if (response.messages.length === 1 && guestid !== obj.guestid) {
 					if (Notification.permission === 'granted') {
 						generateNotification(obj.message);
 					} else {

@@ -147,8 +147,8 @@ function createWebSocket() {
 			container.appendChild(generateUserJoinedTemplate(response.type, response.guestid));
 			msgDiv.append(container);
 		} else if (response.action) {
-			if (response.action === 'typing' && response.guestid !== guestid) {
-				document.querySelector('.text-cntr .typing-lbl').innerHTML = `Guest #${response.guestid} is typing`;
+			if (response.action === 'typing' && guestid !== obj.guestid) {
+				document.querySelector('.text-cntr .typing-lbl').innerHTML = `${anonymousMode ? 'someone' : `Guest #${username}`} is typing...`;
 				debouncedClear();
 			} else if (response.action === 'reload') {
 				window.location.href = window.location.href;

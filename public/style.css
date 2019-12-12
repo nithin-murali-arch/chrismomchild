@@ -17,10 +17,12 @@
 }
 
 .typing-lbl{
+	padding-bottom: 0.5rem;
     font-size: 0.7rem;
     color: #999;
     display: block;
-    text-align: center;
+	text-align: center;
+	height: 26px;
 }
 
 .circle{

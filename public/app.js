@@ -149,9 +149,8 @@ function createWebSocket() {
 				window.location.href = window.location.href;
 			}
 		} else {
-			let msgLen = response.messages.length;
 			response.messages.forEach(function (obj) {
-				if (msgLen === 1 && window.hidden) {
+				if(response.messages.length === 1){
 					if (Notification.permission === 'granted') {
 						generateNotification(obj.message);
 					} else {

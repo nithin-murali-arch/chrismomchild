@@ -57,7 +57,7 @@
     overflow: auto;
     border: solid 1px;
     border-radius: 5px 5px;
-    padding: 1rem;
+	padding: 1rem;
 }
 
 .msg-div .content > div{

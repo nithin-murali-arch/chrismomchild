@@ -18,7 +18,7 @@ let lastRegisteredGuest = -1;
 
 let connectedGuests = {};
 
-app.use('/chrismom', express.static(__dirname + '/public'));
+app.use('/chrismom', express.static(__dirname + '/public', { maxAge: 3600000 }));
 
 /**
  * 

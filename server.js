@@ -1,15 +1,17 @@
-const webSocketsServerPort = 443;
+const webSocketsServerPort = process.argv[2] === 'http' ? 2001 : 443;
 const ws = require('ws');
 const http = require('http');
 const https = require('https');
 const db = require('./dbutils');
 const express = require('express');
-const crypto = require('crypto');
 const fs = require("fs");
+const crypto = require('crypto')
 const options = {
 	key: fs.readFileSync('privatekey.pem'),
 	cert: fs.readFileSync('certificate.pem')
 };
+
+const encryptionUtils = require('encryption-utils');
 const app = express();
 
 let lastRegisteredGuest = -1;
@@ -25,8 +27,8 @@ app.use('/chrismom', express.static(__dirname + '/public'));
  */
 
 // let httpsserver = tls.createServer(app);
-
-let server = https.createServer(options, app);
+let httpObj = process.argv[2] === 'http' ? http : https;
+let server = httpObj.createServer(options, app);
 server.listen(webSocketsServerPort, function () {
     console.log("Server is listening on port:"
         + webSocketsServerPort);
@@ -73,13 +75,13 @@ function broadcastMessage(obj){
 	});
 }
 
-function hash(value){
+function hashData(value){
 	return crypto.createHash('md5').update(value).digest('hex');
 }
 
 wsServer.on('connection', async function (request) {
 	//Start get userid
-    let ip = hash(request._socket.remoteAddress);
+    let ip = hashData(request._socket.remoteAddress);
     let data = await getUserInfo(ip);
     let guestid;
     if (!data) {

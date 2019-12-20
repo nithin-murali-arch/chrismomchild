@@ -66,9 +66,11 @@ async function registerUser(ip){
 }
 
 function broadcastMessage(obj){
-	wsServer.clients.forEach(function each(client) {
+	wsServer.clients.forEach(function (client) {
 		try{
-			obj = JSON.stringify(obj);
+            if(typeof obj !== 'string'){
+                obj = JSON.stringify(obj);
+            }
 			client.send(obj);
 		}
 		catch(err){}
@@ -81,7 +83,8 @@ function hashData(value){
 
 wsServer.on('connection', async function (request) {
 	//Start get userid
-    let ip = hashData(request._socket.remoteAddress);
+    //let ip = hashData(request._socket.remoteAddress);
+let ip = request._socket.remoteAddress;
     let data = await getUserInfo(ip);
     let guestid;
     if (!data) {

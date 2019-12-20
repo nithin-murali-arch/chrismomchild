@@ -41,12 +41,34 @@ function generateMessageTemplate(guest, message, timestamp) {
 	`;
 	return container;
 }
+//Passing object back since language is pass by value :(
+function convertURLToLink(index, text){
+	let end = text.substring(index, text.length);
+	let toReplace = end.substring(0, end.indexOf(' '));
+	if(!toReplace){
+		toReplace = end;
+	}
+	if(toReplace.substring(toReplace.length - 1, toReplace.length).match(/\./)){
+		toReplace = toReplace.substring(0, toReplace.length - 1);
+	}
+	if(toReplace.match(/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)?/gi)){
+		text = text.replace(toReplace, `<a href="${toReplace}" target="_blank">${toReplace}</a>`)
+	}
+	return {data: text, count: (toReplace.length*2) + 32};
+}
 
 function translateEmojis(text) {
+	let index = 0;
+	while((index = text.substring(index, text.length).indexOf('http')) !== -1){
+		converted = convertURLToLink(index, text);
+		text = converted.data;
+		index = converted.count + index;
+	}
 	text = text.replace(/:grinning:/ig, '<span class="emoji">&#x1F600</span>');
 	text = text.replace(/:D/ig, '<span class="emoji">&#x1F603</span>');
 	text = text.replace(/:happy:/ig, '<span class="emoji">&#x1F604</span>');
 	text = text.replace(/:rofl:/ig, '<span class="emoji">&#x1F923</span>');
+	text = text.replace(/:joy:/ig, '<span class="emoji">&#x1F602</span>');
 	text = text.replace(/:tearsojoy:/ig, '<span class="emoji">&#x1F602</span>');
 	text = text.replace(/:\)/ig, '<span class="emoji">&#x1F642</span>');
 	text = text.replace(/;\)/ig, '<span class="emoji">&#x1F609</span>');
@@ -68,6 +90,9 @@ function translateEmojis(text) {
 	text = text.replace(/:dead:/ig, '<span class="emoji">&#x1F480</span>');
 	text = text.replace(/:danger:/ig, '<span class="emoji">&#x2620</span>');
 	text = text.replace(/:poop:/ig, '<span class="emoji">&#x1F4A9</span>');
+	text = text.replace(/:sad:/ig, '<span class="emoji">😔</span>');
+	text = text.replace(/:bored:/ig, '<span class="emoji">&#x1F629</span>');
+	text = text.replace(/:smile:/ig, '<span class="emoji">&#x1F642</span>');
 	text = text.replace(/:girija:/ig, '<span class="emoji">&#x1F47B</span>');
 	text = text.replace(/arvind/ig, 'Gang Leader');
 	return text;
@@ -147,7 +172,7 @@ function createWebSocket() {
 			container.appendChild(generateUserJoinedTemplate(response.type, response.guestid));
 			msgDiv.append(container);
 		} else if (response.action) {
-			if (response.action === 'typing' && guestid !== obj.guestid) {
+			if (response.action === 'typing' && guestid !== response.guestid) {
 				document.querySelector('.text-cntr .typing-lbl').innerHTML = `${anonymousMode ? 'someone' : `Guest #${username}`} is typing...`;
 				debouncedClear();
 			} else if (response.action === 'reload') {
